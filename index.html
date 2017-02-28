@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <link href="http://cdn.bootcss.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <style>
+    
+    html, body{
+      font-size:15px;
+      background: url(http://www.gangqinpu.com/pic/main/bg_pu_1.jpg);
+    }
+    .board{
+      position: relative;
+    }
+    .board img, .board .rect{
+      position: absolute;
+    }
+    .rect{
+      border:1px solid red;
+      background: rgba(0,0,0,0.2);
+    }
+    .rect-body{
+      width:180px;
+      border:1px solid #ddd;
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.8);
+      top:-1px;
+      left:100%;
+      margin-left:1px;
+    }
+    .rect-body textarea{
+      border:none;
+      border-radius: 0;
+      background: rgba(200,200,200, 0.8);
+    }
+    .rect-body textarea:focus{
+      background: rgba(220,220,220, 0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="" id="app">
+    <div class="board" @mousemove.prevent="draw" @mouseup="endDraw">
+      <img class="bg" @mousedown.prevent="beginDraw"
+       src="http://www.gangqinpu.com/pu/2011/8/13/129576680623437500/1.gif">
+
+      <div class="rect" v-for="(item, index) in rects"
+      @mousedown="beginMove(item)" @mousemove="move(item)" @mouseup="endMove(item)"
+      @mouseenter="currentIndex = index" 
+      :style="getPosition(item)">
+        <div class="rect-body card p-2" v-show="currentIndex == index">
+          <div class="row">
+            <div class="col-6">备注:</div>
+            <div class="col-6 text-right">
+              <i class="fa fa-edit" v-show="!isEdit" @click="isEdit = true"></i>
+              <i class="fa fa-save" v-show="isEdit" @click="isEdit = false"></i>
+              <i class="fa fa-close" @click="remove(index)"></i>
+            </div>
+          </div>
+          <textarea v-show="isEdit" v-model="item.content" rows="5" class="form-control"></textarea>
+          <div v-show="!isEdit" v-text="item.content"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="http://cdn.bootcss.com/vue/2.2.1/vue.js"></script>
+  <script>
+    var vm = new Vue({
+      el: '#app',
+      data: {
+        currentIndex: null,
+        isDrawing: false,
+        isMoving: false,
+        isEdit: false,
+        offset: {},
+        rects: [
+          {
+            x1: 100,
+            y1: 100,
+            x2: 220,
+            y2: 260,
+            content: '这里好难。。。'
+          }
+        ]
+      },
+      methods: {
+        beginDraw: function (event) {
+
+          var rect = {
+            x1: event.pageX, 
+            y1: event.pageY, 
+            x2: event.pageX, 
+            y2: event.pageY
+          };
+          this.rects.push(rect);
+          this.isDrawing = true;
+        },
+        draw: function (event) {
+          if (!this.isDrawing) {
+            return true;
+          }
+          var rect = this.rects.slice(-1).pop();
+          
+          rect.x2 = event.pageX;
+          rect.y2 = event.pageY;
+        },
+        endDraw: function (event) {
+          this.isDrawing = false;
+        },
+        beginMove: function (item) {
+          this.isMoving = true;
+          var x = event.pageX;
+          var y = event.pageY;
+          this.offset = {
+            x1: x - item.x1,
+            y1: y - item.y1,
+            x2: item.x2 - x,
+            y2: item.y2 - y
+          };
+        },
+        move: function (item) {
+          if (!this.isMoving) {
+            return true;
+          }
+          var x = event.pageX;
+          var y = event.pageY;
+          var offset = this.offset;
+          item.x1 = x - offset.x1;
+          item.y1 = y - offset.y1;
+          item.x2 = x + offset.x2;
+          item.y2 = y + offset.y2;
+        },
+        endMove: function (item) {
+          this.isMoving = false;
+        },
+        remove: function (index) {
+          this.rects.splice(index, 1);
+          this.currentIndex = null;
+        },
+
+        getPosition: function (item) {
+          return {
+            left: (item.x1) + 'px',
+            top: (item.y1) + 'px',
+            width: (item.x2 - item.x1) + 'px',
+            height: (item.y2- item.y1) + 'px'
+          };
+        }
+      },
+      created: function () {
+
+      }
+    });
+  </script>
+</body>
+</html>
